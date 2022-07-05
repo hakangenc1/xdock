@@ -1,0 +1,38 @@
+{
+  "APPLICATIONS": "Aplikacje",
+  "LOGOUT": "Wyloguj",
+  "SIGNED_IN_AS": "Zalogowany jako:",
+  "SEARCH": "Szukaj",
+
+  "ORDER_LIST": "Lista zamówień",
+  "DRAFT": "Szkic",
+  "CONFIRMED": "Potwierdzony",
+  "TEMPLATE": "Szablon",
+
+  "ORDER_ID": "Zamówienie Id",
+  "REFERENCE_ID": "Odniesienie Id",
+  "TEMPLATE_REF_ID": "Szablon Ref Id",
+  "CUSTOMER_UNIT": "Jednostka klienta",
+  "TRANSMISSION_NUMBER": "Numer transmisji",
+  "CREATED_AT": "Utworzono w",
+
+  "TRAILER_CAPACITY_BOOKING": "Rezerwacja pojemności przyczepy",
+  "SHIP_FROM": "Statek z",
+  "UNLOAD_POINT": "Punkt rozładunku",
+  "LAST_CONSIGNEE": "Ostatni odbiorca",
+  "SERVICE_PROVIDER": "Dostawca usługi",
+  "PICKUP_REFERENCE": "Odbiór odniesienia",
+  "MESSAGE_TO_CARRIER": "Wiadomość do przewoźnika",
+
+  "ADD_ROW": "Dodaj wiersz",
+  "TRAILER_COUNT": "Liczba przyczep",
+  "SLOT_START_TIME": "Czas rozpoczęcia slotu",
+  "SLOT_END_TIME": "Czas zakończenia slotu",
+
+  "DELETE": "Usuwać",
+  "CREATE_NEW": "Tworzyć nowe",
+  "SAVE": "Ratować",
+  "SAVE_AND_SEND_TO_ATLAS": "Zapisz i wyślij do Atlasu",
+  "SAVE_AS_TEMPLATE": "Zapisać jako szablon",
+  "SAVE_AS_DRAFT": "Zapisz jako szkic"
+}

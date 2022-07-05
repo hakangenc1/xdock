@@ -1,0 +1,38 @@
+{
+  "APPLICATIONS": "Ansökningar",
+  "LOGOUT": "Logga ut",
+  "SIGNED_IN_AS": "Inloggad som:",
+  "SEARCH": "Sök",
+
+  "ORDER_LIST": "Orderlista",
+  "DRAFT": "Förslag",
+  "CONFIRMED": "Bekräftad",
+  "TEMPLATE": "Mall",
+
+  "ORDER_ID": "Ordning Id",
+  "REFERENCE_ID": "Referens Id",
+  "TEMPLATE_REF_ID": "Mall Ref Id",
+  "CUSTOMER_UNIT": "Kundenhet",
+  "TRANSMISSION_NUMBER": "Överföringsnummer",
+  "CREATED_AT": "Skapad vid",
+
+  "TRAILER_CAPACITY_BOOKING": "Bokning av släpvagnskapacitet",
+  "SHIP_FROM": "Skicka från",
+  "UNLOAD_POINT": "Avlastningspunkt",
+  "LAST_CONSIGNEE": "Sista mottagaren",
+  "SERVICE_PROVIDER": "Tjänsteleverantör",
+  "PICKUP_REFERENCE": "Hämtningsreferens",
+  "MESSAGE_TO_CARRIER": "Meddelande till operatören",
+
+  "ADD_ROW": "Lägg till rad",
+  "TRAILER_COUNT": "Antal trailers",
+  "SLOT_START_TIME": "Slots starttid",
+  "SLOT_END_TIME": "Slots sluttid",
+
+  "DELETE": "Radera",
+  "CREATE_NEW": "Skapa ny",
+  "SAVE": "Spara",
+  "SAVE_AND_SEND_TO_ATLAS": "Spara och skicka till Atlas",
+  "SAVE_AS_TEMPLATE": "Spara som mall",
+  "SAVE_AS_DRAFT": "Spara som utkast"
+}

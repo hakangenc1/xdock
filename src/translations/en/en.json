@@ -1,0 +1,38 @@
+{
+  "APPLICATIONS": "Applications",
+  "LOGOUT": "Logout",
+  "SIGNED_IN_AS": "Signed in as:",
+  "SEARCH": "Search",
+
+  "ORDER_LIST": "Order List",
+  "DRAFT": "Draft",
+  "CONFIRMED": "Confirmed",
+  "TEMPLATE": "Template",
+
+  "ORDER_ID": "Order Id",
+  "REFERENCE_ID": "Reference Id",
+  "TEMPLATE_REF_ID": "Template Ref Id",
+  "CUSTOMER_UNIT": "Customer unit",
+  "TRANSMISSION_NUMBER": "Transmission number",
+  "CREATED_AT": "Created at",
+
+  "TRAILER_CAPACITY_BOOKING": "Trailer capacity booking",
+  "SHIP_FROM": "Ship From",
+  "UNLOAD_POINT": "Unload Point",
+  "LAST_CONSIGNEE": "Last Consignee",
+  "SERVICE_PROVIDER": "Service Provider",
+  "PICKUP_REFERENCE": "Pickup Reference",
+  "MESSAGE_TO_CARRIER": "Message to Carrier",
+
+  "ADD_ROW": "Add row",
+  "TRAILER_COUNT": "Trailer count",
+  "SLOT_START_TIME": "Slot start time",
+  "SLOT_END_TIME": "Slot end time",
+
+  "DELETE": "Delete",
+  "CREATE_NEW": "Create new",
+  "SAVE": "Save",
+  "SAVE_AND_SEND_TO_ATLAS": "Save and Send to Atlas",
+  "SAVE_AS_TEMPLATE": "Save as Template",
+  "SAVE_AS_DRAFT": "Save as Draft"
+}
