@@ -34,5 +34,12 @@
   "SAVE": "Ratować",
   "SAVE_AND_SEND_TO_ATLAS": "Zapisz i wyślij do Atlasu",
   "SAVE_AS_TEMPLATE": "Zapisać jako szablon",
-  "SAVE_AS_DRAFT": "Zapisz jako szkic"
+  "SAVE_AS_DRAFT": "Zapisz jako szkic",
+  "CONFIRM": "Potwierdzać",
+  "CANCEL": "Anulować",
+  "DELETE_XBR": "Usuń XBR",
+  "ARE_YOU_SURE_YOU_WANT_TO_DELETE_IT": "Czy na pewno chcesz go usunąć?",
+  "TEMPLATE_NAME": "Nazwa szablonu",
+  "NO_DATA": "Brak danych",
+  "LOADING": "Ładowanie..."
 }

@@ -34,5 +34,12 @@
   "SAVE": "Save",
   "SAVE_AND_SEND_TO_ATLAS": "Save and Send to Atlas",
   "SAVE_AS_TEMPLATE": "Save as Template",
-  "SAVE_AS_DRAFT": "Save as Draft"
+  "SAVE_AS_DRAFT": "Save as Draft",
+  "CONFIRM": "Confirm",
+  "CANCEL": "Cancel",
+  "DELETE_XBR": "Delete XBR",
+  "ARE_YOU_SURE_YOU_WANT_TO_DELETE_IT": "Are you sure you want to delete it?",
+  "TEMPLATE_NAME": "Template name",
+  "NO_DATA": "No data",
+  "LOADING": "Loading..."
 }

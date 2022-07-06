@@ -34,5 +34,12 @@
   "SAVE": "Spara",
   "SAVE_AND_SEND_TO_ATLAS": "Spara och skicka till Atlas",
   "SAVE_AS_TEMPLATE": "Spara som mall",
-  "SAVE_AS_DRAFT": "Spara som utkast"
+  "SAVE_AS_DRAFT": "Spara som utkast",
+  "CONFIRM": "Bekräfta",
+  "CANCEL": "Avbryt",
+  "DELETE_XBR": "Ta bort XBR",
+  "ARE_YOU_SURE_YOU_WANT_TO_DELETE_IT": "Är du säker på att du vill ta bort den?",
+  "TEMPLATE_NAME": "Mallnamn",
+  "NO_DATA": "Inga data",
+  "LOADING": "Läser in..."
 }
