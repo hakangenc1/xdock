@@ -41,5 +41,7 @@
   "ARE_YOU_SURE_YOU_WANT_TO_DELETE_IT": "Czy na pewno chcesz go usunąć?",
   "TEMPLATE_NAME": "Nazwa szablonu",
   "NO_DATA": "Brak danych",
-  "LOADING": "Ładowanie..."
+  "LOADING": "Ładowanie...",
+  "DELETING": "Usuwanie...",
+  "SAVED_AS_TEMPLATE": "Zapisywanie jako szablon..."
 }

@@ -41,5 +41,7 @@
   "ARE_YOU_SURE_YOU_WANT_TO_DELETE_IT": "Are you sure you want to delete it?",
   "TEMPLATE_NAME": "Template name",
   "NO_DATA": "No data",
-  "LOADING": "Loading..."
+  "LOADING": "Loading...",
+  "DELETING": "Deleting...",
+  "SAVED_AS_TEMPLATE": "Saving as template..."
 }

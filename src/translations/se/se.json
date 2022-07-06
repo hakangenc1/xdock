@@ -41,5 +41,7 @@
   "ARE_YOU_SURE_YOU_WANT_TO_DELETE_IT": "Är du säker på att du vill ta bort den?",
   "TEMPLATE_NAME": "Mallnamn",
   "NO_DATA": "Inga data",
-  "LOADING": "Läser in..."
+  "LOADING": "Läser in...",
+  "DELETING": "Tar bort...",
+  "SAVED_AS_TEMPLATE": "Sparar som mall..."
 }

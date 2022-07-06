@@ -16,7 +16,9 @@ import {
   UserIcon,
 } from "@heroicons/react/outline";
 import { useEffect, useState } from "react";
+import DatePicker from "react-datepicker";
 import axios from "axios";
+
 import { useTheme } from "./theme/useTheme";
 
 import { useTranslation } from "react-i18next";
@@ -28,6 +30,7 @@ import Spinner from "./Spinner";
 
 export default function Layout() {
   const [isDarkMode, toggleDarkMode] = useTheme();
+  const { t, i18n } = useTranslation("common");
 
   const [list, setList] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
@@ -35,8 +38,8 @@ export default function Layout() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const { t, i18n } = useTranslation("common");
+  const [isDeleted, setIsDeleted] = useState(false);
+  const [isSavedAsTemplate, setIsSavedAsTemplate] = useState(false);
 
   const handleXBRLoad = async () => {
     setIsLoading(true);
@@ -71,12 +74,28 @@ export default function Layout() {
     setXbrList([{ id: Math.random(), trailerCount: "", slotStartTime: "", slotEndTime: "" }, ...xbrList]);
   };
 
-  const handleDeleteXBR = (id) => {
+  const handleDeleteRow = (id) => {
     setXbrList(xbrList.filter((e) => e.id !== id));
   };
 
   const handleRefresh = () => {
     handleXBRLoad();
+  };
+
+  const handleDeleteXBR = () => {
+    setIsDeleted(true);
+    setIsOpen(false);
+    setTimeout(() => {
+      setIsDeleted(false);
+    }, 1000);
+  };
+
+  const handleSaveAsTemplate = () => {
+    setIsSavedAsTemplate(true);
+    setIsTemplateOpen(false);
+    setTimeout(() => {
+      setIsSavedAsTemplate(false);
+    }, 1000);
   };
 
   return (
@@ -86,6 +105,18 @@ export default function Layout() {
           <Spinner text={t("LOADING")} />
         </div>
       )}
+      {isDeleted && (
+        <div className='absolute z-50 w-full'>
+          <Spinner text={t("DELETING")} />
+        </div>
+      )}
+
+      {isSavedAsTemplate && (
+        <div className='absolute z-50 w-full'>
+          <Spinner text={t("SAVED_AS_TEMPLATE")} />
+        </div>
+      )}
+
       <div className='flex flex-col h-screen overflow-hidden'>
         <div className='flex justify-between gap-2 text-sm border-b-4 border-gray-300 select-none bg-volvo-gray dark:bg-gray-800 dark:text-gray-300 dark:border-b-gray-900 dark:border-b-4'>
           <div className='flex gap-2'>
@@ -329,12 +360,7 @@ export default function Layout() {
                 <TrashIcon />
               </Button>
 
-              <Modal
-                isOpen={isOpen}
-                close={toggleModal}
-                title={t("DELETE_XBR")}
-                actions={{ cancelText: t("CANCEL"), cancel: toggleModal, confirmText: t("CONFIRM"), confirm: () => console.log("confirmed") }}
-              >
+              <Modal isOpen={isOpen} close={toggleModal} title={t("DELETE_XBR")} actions={{ cancelText: t("CANCEL"), cancel: toggleModal, confirmText: t("CONFIRM"), confirm: handleDeleteXBR }}>
                 {t("ARE_YOU_SURE_YOU_WANT_TO_DELETE_IT")}
               </Modal>
             </div>
@@ -466,27 +492,30 @@ export default function Layout() {
                           />
                         </td>
                         <td className='p-1'>
-                          <input
-                            className='w-full p-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                            name='slotStartTime'
-                            type='text'
-                            placeholder={t("SLOT_START_TIME")}
-                            value={xbr.slotStartTime}
+                          <DatePicker
+                            showTimeSelect
+                            timeFormat='HH:mm'
+                            timeIntervals={15}
+                            placeholderText={t("SLOT_START_TIME")}
+                            calendarStartDay={1}
                             onChange={() => {}}
+                            dateFormat='LLL'
+                            className='w-full p-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
                           />
                         </td>
                         <td className='p-1'>
-                          <input
-                            className='w-full p-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                            name='slotEndTime'
-                            type='text'
-                            placeholder={t("SLOT_END_TIME")}
-                            value={xbr.slotEndTime}
+                          <DatePicker
+                            showTimeSelect
+                            timeFormat='HH:mm'
+                            timeIntervals={15}
+                            placeholderText={t("SLOT_END_TIME")}
                             onChange={() => {}}
+                            dateFormat='LLL'
+                            className='w-full p-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
                           />
                         </td>
                         <td className='w-12 p-1'>
-                          <TrashIcon onClick={() => handleDeleteXBR(xbr.id)} className='w-5 h-5 mx-auto text-gray-500 cursor-pointer hover:text-red-500 dark:hover:text-red-500 dark:text-gray-300 ' />
+                          <TrashIcon onClick={() => handleDeleteRow(xbr.id)} className='w-5 h-5 mx-auto text-gray-500 cursor-pointer hover:text-red-500 dark:hover:text-red-500 dark:text-gray-300 ' />
                         </td>
                       </tr>
                     ))
@@ -593,7 +622,7 @@ export default function Layout() {
               isOpen={isTemplateOpen}
               close={toggleTemplateModal}
               title={t("SAVE_AS_TEMPLATE")}
-              actions={{ cancelText: t("CANCEL"), cancel: toggleTemplateModal, confirmText: t("CONFIRM"), confirm: () => console.log("confirmed") }}
+              actions={{ cancelText: t("CANCEL"), cancel: toggleTemplateModal, confirmText: t("CONFIRM"), confirm: handleSaveAsTemplate }}
             >
               <input
                 className='w-full p-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
