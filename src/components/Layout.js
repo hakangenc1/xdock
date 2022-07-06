@@ -83,7 +83,7 @@ export default function Layout() {
     <>
       {isLoading && (
         <div className='absolute z-50 w-full'>
-          <Spinner />
+          <Spinner text={t("LOADING")} />
         </div>
       )}
       <div className='flex flex-col h-screen overflow-hidden'>
@@ -342,9 +342,12 @@ export default function Layout() {
             <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
               <div className='w-full'>
                 <div className='mb-2 text-sm'>
-                  <span className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>{t("SHIP_FROM")}</span>
+                  <label htmlFor='shipFrom' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
+                    {t("SHIP_FROM")}
+                  </label>
                 </div>
                 <input
+                  id='shipFrom'
                   type='text'
                   className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
                   placeholder={t("SHIP_FROM")}
@@ -353,9 +356,12 @@ export default function Layout() {
 
               <div className='w-full'>
                 <div className='mb-2 text-sm'>
-                  <span className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>{t("UNLOAD_POINT")}</span>
+                  <label htmlFor='unloadPoint' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
+                    {t("UNLOAD_POINT")}
+                  </label>
                 </div>
                 <input
+                  id='unloadPoint'
                   type='text'
                   className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
                   placeholder={t("UNLOAD_POINT")}
@@ -364,19 +370,27 @@ export default function Layout() {
 
               <div className='w-full'>
                 <div className='mb-2 text-sm'>
-                  <span className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>{t("LAST_CONSIGNEE")}</span>
+                  <label htmlFor='lastConsignee' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
+                    {t("LAST_CONSIGNEE")}
+                  </label>
                 </div>
                 <input
                   type='text'
+                  id='lastConsignee'
                   className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
                   placeholder={t("LAST_CONSIGNEE")}
                 />
               </div>
 
               <div className='w-full'>
-                <div className='mb-2 text-sm truncate dark:text-gray-300'>{t("SERVICE_PROVIDER")}</div>
+                <div className='mb-2 text-sm'>
+                  <label htmlFor='serviceProvider' className='truncate before:text-red-500 dark:text-gray-300'>
+                    {t("SERVICE_PROVIDER")}
+                  </label>
+                </div>
                 <input
                   type='text'
+                  id='serviceProvider'
                   className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
                   placeholder={t("SERVICE_PROVIDER")}
                 />
@@ -385,18 +399,28 @@ export default function Layout() {
 
             <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
               <div className='w-full'>
-                <div className='mb-2 text-sm truncate dark:text-gray-300'>{t("PICKUP_REFERENCE")}</div>
+                <div className='mb-2 text-sm'>
+                  <label htmlFor='pickupReference' className='truncate before:text-red-500 dark:text-gray-300'>
+                    {t("PICKUP_REFERENCE")}
+                  </label>
+                </div>
                 <input
                   type='text'
+                  id='pickupReference'
                   className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
                   placeholder={t("PICKUP_REFERENCE")}
                 />
               </div>
 
               <div className='w-full'>
-                <div className='mb-2 text-sm truncate dark:text-gray-300'>{t("MESSAGE_TO_CARRIER")}</div>
+                <div className='mb-2 text-sm'>
+                  <label htmlFor='messageToCarrier' className='truncate before:text-red-500 dark:text-gray-300'>
+                    {t("MESSAGE_TO_CARRIER")}
+                  </label>
+                </div>
                 <input
                   type='text'
+                  id='messageToCarrier'
                   className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
                   placeholder={t("MESSAGE_TO_CARRIER")}
                 />
