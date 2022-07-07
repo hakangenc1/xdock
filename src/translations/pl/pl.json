@@ -43,5 +43,6 @@
   "NO_DATA": "Brak danych",
   "LOADING": "Ładowanie...",
   "DELETING": "Usuwanie...",
-  "SAVED_AS_TEMPLATE": "Zapisywanie jako szablon..."
+  "SAVED_AS_TEMPLATE": "Zapisywanie jako szablon...",
+  "THIS_FIELD_CANNOT_BE_EMPTY": "To pole nie może być puste!"
 }

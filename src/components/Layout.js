@@ -18,23 +18,49 @@ import {
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import axios from "axios";
-
-import { useTheme } from "./theme/useTheme";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 
 import { useTranslation } from "react-i18next";
 import "../translations/i18next";
 
+import { useTheme } from "./theme/useTheme";
+
 import Button from "./Button";
 import Modal from "./Modal";
 import Spinner from "./Spinner";
+import moment from "moment";
 
 export default function Layout() {
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      shipFrom: "",
+      unloadPoint: "",
+      lastConsignee: "",
+      serviceProvider: "",
+      pickupReference: "",
+      messageToCarrier: "",
+      xbrList: [
+        {
+          trailerCount: "",
+          slotStartTime: "",
+          slotEndTime: "",
+        },
+      ],
+    },
+  });
+
   const [isDarkMode, toggleDarkMode] = useTheme();
   const { t, i18n } = useTranslation("common");
 
+  const { fields, append, remove } = useFieldArray({ name: "xbrList", control });
+
   const [list, setList] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
-  const [xbrList, setXbrList] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,11 +97,11 @@ export default function Layout() {
   };
 
   const handleAddRow = () => {
-    setXbrList([{ id: Math.random(), trailerCount: "", slotStartTime: "", slotEndTime: "" }, ...xbrList]);
+    append({ trailerCount: "", slotStartTime: "", slotEndTime: "" });
   };
 
   const handleDeleteRow = (id) => {
-    setXbrList(xbrList.filter((e) => e.id !== id));
+    remove(id);
   };
 
   const handleRefresh = () => {
@@ -96,6 +122,10 @@ export default function Layout() {
     setTimeout(() => {
       setIsSavedAsTemplate(false);
     }, 1000);
+  };
+
+  const handleSaveAndSendToAtlas = (data) => {
+    console.log("data", data);
   };
 
   return (
@@ -364,165 +394,235 @@ export default function Layout() {
                 {t("ARE_YOU_SURE_YOU_WANT_TO_DELETE_IT")}
               </Modal>
             </div>
-
-            <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
-              <div className='w-full'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='shipFrom' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
-                    {t("SHIP_FROM")}
-                  </label>
+            <form id='xbr' autoComplete='off'>
+              <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
+                <div className='w-full mb-4'>
+                  <div className='mb-2 text-sm'>
+                    <label htmlFor='shipFrom' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
+                      {t("SHIP_FROM")}
+                    </label>
+                  </div>
+                  <div className='relative'>
+                    <input
+                      id='shipFrom'
+                      type='text'
+                      {...register("shipFrom", { required: t("THIS_FIELD_CANNOT_BE_EMPTY") })}
+                      name='shipFrom'
+                      className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.shipFrom ? "border-red-500" : "dark:border-gray-700"} ${
+                        errors.shipFrom ? "border-red-500" : "hover:border-volvo-blue"
+                      }`}
+                      placeholder={t("SHIP_FROM")}
+                    />
+                    <div className='absolute w-full text-sm text-red-500 truncate top-11'>{errors.shipFrom && errors.shipFrom.message}</div>
+                  </div>
                 </div>
-                <input
-                  id='shipFrom'
-                  type='text'
-                  className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                  placeholder={t("SHIP_FROM")}
-                />
+
+                <div className='w-full mb-4'>
+                  <div className='mb-2 text-sm'>
+                    <label htmlFor='unloadPoint' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
+                      {t("UNLOAD_POINT")}
+                    </label>
+                  </div>
+                  <div className='relative'>
+                    <input
+                      id='unloadPoint'
+                      type='text'
+                      {...register("unloadPoint", { required: t("THIS_FIELD_CANNOT_BE_EMPTY") })}
+                      name='unloadPoint'
+                      className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.unloadPoint ? "border-red-500" : "dark:border-gray-700"} ${
+                        errors.unloadPoint ? "border-red-500" : "hover:border-volvo-blue"
+                      }`}
+                      placeholder={t("UNLOAD_POINT")}
+                    />
+                    <div className='absolute w-full text-sm text-red-500 truncate top-11'>{errors.unloadPoint && errors.unloadPoint.message}</div>
+                  </div>
+                </div>
+
+                <div className='w-full mb-4'>
+                  <div className='mb-2 text-sm'>
+                    <label htmlFor='lastConsignee' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
+                      {t("LAST_CONSIGNEE")}
+                    </label>
+                  </div>
+                  <div className='relative'>
+                    <input
+                      type='text'
+                      id='lastConsignee'
+                      {...register("lastConsignee", { required: t("THIS_FIELD_CANNOT_BE_EMPTY") })}
+                      name='lastConsignee'
+                      className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.lastConsignee ? "border-red-500" : "dark:border-gray-700"} ${
+                        errors.lastConsignee ? "border-red-500" : "hover:border-volvo-blue"
+                      }`}
+                      placeholder={t("LAST_CONSIGNEE")}
+                    />
+                    <div className='absolute w-full text-sm text-red-500 truncate top-11'>{errors.lastConsignee && errors.lastConsignee.message}</div>
+                  </div>
+                </div>
+
+                <div className='w-full mb-4'>
+                  <div className='mb-2 text-sm'>
+                    <label htmlFor='serviceProvider' className='truncate before:text-red-500 dark:text-gray-300'>
+                      {t("SERVICE_PROVIDER")}
+                    </label>
+                  </div>
+                  <input
+                    type='text'
+                    id='serviceProvider'
+                    {...register("serviceProvider")}
+                    name='serviceProvider'
+                    className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
+                    placeholder={t("SERVICE_PROVIDER")}
+                  />
+                </div>
               </div>
 
-              <div className='w-full'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='unloadPoint' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
-                    {t("UNLOAD_POINT")}
-                  </label>
+              <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
+                <div className='w-full mb-4'>
+                  <div className='mb-2 text-sm'>
+                    <label htmlFor='pickupReference' className='truncate before:text-red-500 dark:text-gray-300'>
+                      {t("PICKUP_REFERENCE")}
+                    </label>
+                  </div>
+                  <input
+                    type='text'
+                    id='pickupReference'
+                    {...register("pickupReference")}
+                    name='pickupReference'
+                    className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
+                    placeholder={t("PICKUP_REFERENCE")}
+                  />
                 </div>
-                <input
-                  id='unloadPoint'
-                  type='text'
-                  className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                  placeholder={t("UNLOAD_POINT")}
-                />
+
+                <div className='w-full mb-4'>
+                  <div className='mb-2 text-sm'>
+                    <label htmlFor='messageToCarrier' className='truncate before:text-red-500 dark:text-gray-300'>
+                      {t("MESSAGE_TO_CARRIER")}
+                    </label>
+                  </div>
+                  <input
+                    type='text'
+                    id='messageToCarrier'
+                    {...register("messageToCarrier")}
+                    name='messageToCarrier'
+                    className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
+                    placeholder={t("MESSAGE_TO_CARRIER")}
+                  />
+                </div>
               </div>
 
-              <div className='w-full'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='lastConsignee' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
-                    {t("LAST_CONSIGNEE")}
-                  </label>
-                </div>
-                <input
-                  type='text'
-                  id='lastConsignee'
-                  className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                  placeholder={t("LAST_CONSIGNEE")}
-                />
-              </div>
+              <div className='px-8'>
+                <button
+                  type='button'
+                  onClick={handleAddRow}
+                  className='inline-flex items-center select-none px-3 py-2 hover:bg-[#EEE] text-sm border rounded active:relative active:top-0.5 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700'
+                >
+                  <PlusIcon className='w-5 h-5 mr-1' />
+                  <span className='whitespace-nowrap'>{t("ADD_ROW")}</span>
+                </button>
 
-              <div className='w-full'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='serviceProvider' className='truncate before:text-red-500 dark:text-gray-300'>
-                    {t("SERVICE_PROVIDER")}
-                  </label>
-                </div>
-                <input
-                  type='text'
-                  id='serviceProvider'
-                  className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                  placeholder={t("SERVICE_PROVIDER")}
-                />
-              </div>
-            </div>
-
-            <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
-              <div className='w-full'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='pickupReference' className='truncate before:text-red-500 dark:text-gray-300'>
-                    {t("PICKUP_REFERENCE")}
-                  </label>
-                </div>
-                <input
-                  type='text'
-                  id='pickupReference'
-                  className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                  placeholder={t("PICKUP_REFERENCE")}
-                />
-              </div>
-
-              <div className='w-full'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='messageToCarrier' className='truncate before:text-red-500 dark:text-gray-300'>
-                    {t("MESSAGE_TO_CARRIER")}
-                  </label>
-                </div>
-                <input
-                  type='text'
-                  id='messageToCarrier'
-                  className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                  placeholder={t("MESSAGE_TO_CARRIER")}
-                />
-              </div>
-            </div>
-
-            <div className='px-8'>
-              <button
-                onClick={handleAddRow}
-                className='inline-flex items-center select-none px-3 py-2 hover:bg-[#EEE] text-sm border rounded active:relative active:top-0.5 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700'
-              >
-                <PlusIcon className='w-5 h-5 mr-1' />
-                <span className='whitespace-nowrap'>{t("ADD_ROW")}</span>
-              </button>
-
-              <table className='w-full p-2 mt-2 mb-10 border table-fixed select-none dark:border-gray-700'>
-                <thead>
-                  <tr>
-                    <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300'>{t("TRAILER_COUNT")}</td>
-                    <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300'>{t("SLOT_START_TIME")} (Europe/Stockholm)</td>
-                    <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300'>{t("SLOT_END_TIME")} (Europe/Stockholm)</td>
-                    <td className='w-12 p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300'></td>
-                  </tr>
-                </thead>
-                <tbody>
-                  {xbrList.length === 0 ? (
+                <table className='w-full p-2 mt-2 mb-10 border table-fixed select-none dark:border-gray-700'>
+                  <thead>
                     <tr>
-                      <td colSpan={3}>
-                        <div className='w-full p-3 text-sm italic text-center'>{t("NO_DATA")}</div>
+                      <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300 after:content-[""] before:content-["*"] before:text-red-500'>{t("TRAILER_COUNT")}</td>
+                      <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300 after:content-[""] before:content-["*"] before:text-red-500'>
+                        {t("SLOT_START_TIME")} (Europe/Stockholm)
                       </td>
+                      <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300 after:content-[""] before:content-["*"] before:text-red-500'>
+                        {t("SLOT_END_TIME")} (Europe/Stockholm)
+                      </td>
+                      <td className='w-12 p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300'></td>
                     </tr>
-                  ) : (
-                    xbrList.map((xbr) => (
-                      <tr key={xbr.id}>
-                        <td className='p-1'>
-                          <input
-                            className='w-full p-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                            name='trailerCount'
-                            type='text'
-                            placeholder={t("TRAILER_COUNT")}
-                            value={xbr.trailerCount}
-                            onChange={() => {}}
-                          />
-                        </td>
-                        <td className='p-1'>
-                          <DatePicker
-                            showTimeSelect
-                            timeFormat='HH:mm'
-                            timeIntervals={15}
-                            placeholderText={t("SLOT_START_TIME")}
-                            calendarStartDay={1}
-                            onChange={() => {}}
-                            dateFormat='LLL'
-                            className='w-full p-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                          />
-                        </td>
-                        <td className='p-1'>
-                          <DatePicker
-                            showTimeSelect
-                            timeFormat='HH:mm'
-                            timeIntervals={15}
-                            placeholderText={t("SLOT_END_TIME")}
-                            onChange={() => {}}
-                            dateFormat='LLL'
-                            className='w-full p-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                          />
-                        </td>
-                        <td className='w-12 p-1'>
-                          <TrashIcon onClick={() => handleDeleteRow(xbr.id)} className='w-5 h-5 mx-auto text-gray-500 cursor-pointer hover:text-red-500 dark:hover:text-red-500 dark:text-gray-300 ' />
+                  </thead>
+                  <tbody>
+                    {fields.length === 0 ? (
+                      <tr>
+                        <td colSpan={3}>
+                          <div className='w-full p-3 text-sm italic text-center'>{t("NO_DATA")}</div>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ) : (
+                      fields.map((xbr, index) => (
+                        <tr key={xbr.id}>
+                          <td className='p-1'>
+                            <input
+                              className={`w-full p-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${
+                                errors.xbrList?.[index]?.trailerCount ? "border-red-500" : "dark:border-gray-700"
+                              } ${errors.xbrList?.[index]?.trailerCount ? "border-red-500" : "hover:border-volvo-blue"}`}
+                              name={`xbrList[${index}]trailerCount`}
+                              type='text'
+                              {...register(`xbrList.${index}.trailerCount`, { required: t("THIS_FIELD_CANNOT_BE_EMPTY") })}
+                              placeholder={t("TRAILER_COUNT")}
+                            />
+                          </td>
+                          <td className='p-1'>
+                            <Controller
+                              control={control}
+                              name={`xbrList.${index}.slotStartTime`}
+                              rules={{ required: t("THIS_FIELD_CANNOT_BE_EMPTY") }}
+                              render={({ field: { onChange, value, ref } }) => (
+                                <DatePicker
+                                  showTimeSelect
+                                  timeFormat='HH:mm'
+                                  timeIntervals={15}
+                                  timeCaption='Time'
+                                  dateFormat='yyyy-MM-dd HH:mm'
+                                  selected={value}
+                                  name={`xbrList.${index}.slotStartTime`}
+                                  placeholderText={t("SLOT_START_TIME")}
+                                  ref={ref}
+                                  calendarStartDay={1}
+                                  value={value}
+                                  className={`w-full p-2 text-sm border outline-none dark:text-gray-300 dark:bg-gray-900 ${
+                                    errors.xbrList?.[index]?.slotStartTime ? "border-red-500" : "dark:border-gray-700"
+                                  } ${errors.xbrList?.[index]?.slotStartTime ? "border-red-500" : "hover:border-volvo-blue"}`}
+                                  onChange={onChange}
+                                  minDate={moment().toDate()}
+                                />
+                              )}
+                            />
+                          </td>
+                          <td className='p-1'>
+                            <Controller
+                              control={control}
+                              name={`xbrList.${index}.slotEndTime`}
+                              rules={{ required: t("THIS_FIELD_CANNOT_BE_EMPTY") }}
+                              render={({ field: { onChange, value, ref } }) => (
+                                <DatePicker
+                                  showTimeSelect
+                                  name={`xbrList.${index}.slotEndTime`}
+                                  timeFormat='HH:mm'
+                                  timeIntervals={15}
+                                  timeCaption='Time'
+                                  placeholderText={t("SLOT_END_TIME")}
+                                  selected={value}
+                                  ref={ref}
+                                  calendarStartDay={1}
+                                  dateFormat='yyyy-MM-dd HH:mm'
+                                  value={value}
+                                  className={`w-full p-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${
+                                    errors.xbrList?.[index]?.slotEndTime ? "border-red-500" : "dark:border-gray-700"
+                                  } ${errors.xbrList?.[index]?.slotEndTime ? "border-red-500" : "hover:border-volvo-blue"}`}
+                                  onChange={onChange}
+                                  minDate={moment().toDate()}
+                                />
+                              )}
+                            />
+                          </td>
+                          {fields.length > 1 && (
+                            <td className='w-12 p-1'>
+                              <TrashIcon
+                                onClick={() => handleDeleteRow(index)}
+                                className='w-5 h-5 mx-auto text-gray-500 cursor-pointer hover:text-red-500 dark:hover:text-red-500 dark:text-gray-300 '
+                              />
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </form>
           </div>
         </div>
 
@@ -530,12 +630,16 @@ export default function Layout() {
           <div className='flex justify-between'>
             {isMenuOpen ? (
               <div className='flex justify-between p-1 w-320'>
-                <button className='active:relative active:top-0.5 inline-flex items-center px-2 py-1 text-sm border rounded select-none dark:border-gray-800 dark:hover:bg-gray-900 dark:bg-gray-800 border-volvo-success-button-border text-volvo-success hover:bg-volvo-success-button-background-hover bg-volvo-success-button-background'>
+                <button
+                  type='button'
+                  className='active:relative active:top-0.5 inline-flex items-center px-2 py-1 text-sm border rounded select-none dark:border-gray-800 dark:hover:bg-gray-900 dark:bg-gray-800 border-volvo-success-button-border text-volvo-success hover:bg-volvo-success-button-background-hover bg-volvo-success-button-background'
+                >
                   <PlusIcon className='w-5 h-5 mr-2' />
                   {t("CREATE_NEW")}
                 </button>
 
                 <button
+                  type='button'
                   onClick={handleRefresh}
                   className='select-none active:relative active:top-0.5 items-center px-2 py-2 dark:border-gray-800 dark:hover:bg-gray-900 dark:bg-gray-800 text-sm rounded hover:bg-volvo-success-button-background-hover'
                 >
@@ -546,7 +650,7 @@ export default function Layout() {
               <div></div>
             )}
 
-            <div className='relative z-10'>
+            <div className='relative z-10 select-none'>
               <Menu>
                 {({ open }) => (
                   <>
@@ -575,19 +679,22 @@ export default function Layout() {
                         <div className='py-1'>
                           <Menu.Item>
                             {({ active }) => (
-                              <div
+                              <button
+                                form='xbr'
+                                onClick={handleSubmit(handleSaveAndSendToAtlas)}
                                 className={`${
                                   active ? "bg-gray-100 dark:bg-gray-800 text-gray-900" : "text-gray-700"
                                 } flex items-center dark:text-gray-300 gap-1 w-full px-3 py-2 text-sm leading-5 text-center cursor-pointer`}
                               >
                                 <FastForwardIcon className='w-5 h-5' />
                                 {t("SAVE_AND_SEND_TO_ATLAS")}
-                              </div>
+                              </button>
                             )}
                           </Menu.Item>
                           <Menu.Item>
                             {({ active }) => (
-                              <div
+                              <button
+                                form='form'
                                 className={`${
                                   active ? "bg-gray-100 dark:bg-gray-800 text-gray-900" : "text-gray-700"
                                 } flex items-center dark:text-gray-300 gap-1 w-full px-3 py-2 text-sm leading-5 text-center cursor-pointer`}
@@ -595,19 +702,20 @@ export default function Layout() {
                               >
                                 <ClipboardListIcon className='w-5 h-5' />
                                 {t("SAVE_AS_TEMPLATE")}
-                              </div>
+                              </button>
                             )}
                           </Menu.Item>
                           <Menu.Item>
                             {({ active }) => (
-                              <div
+                              <button
+                                form='form'
                                 className={`${
                                   active ? "bg-gray-100 dark:bg-gray-800 text-gray-900" : "text-gray-700"
                                 } flex items-center dark:text-gray-300 gap-1 w-full px-3 py-2 text-sm leading-5 text-center cursor-pointer`}
                               >
                                 <NewspaperIcon className='w-5 h-5' />
                                 {t("SAVE_AS_DRAFT")}
-                              </div>
+                              </button>
                             )}
                           </Menu.Item>
                         </div>

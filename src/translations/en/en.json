@@ -43,5 +43,6 @@
   "NO_DATA": "No data",
   "LOADING": "Loading...",
   "DELETING": "Deleting...",
-  "SAVED_AS_TEMPLATE": "Saving as template..."
+  "SAVED_AS_TEMPLATE": "Saving as template...",
+  "THIS_FIELD_CANNOT_BE_EMPTY": "This field cannot be empty!"
 }
