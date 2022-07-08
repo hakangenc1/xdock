@@ -31,13 +31,10 @@ import Spinner from "./Spinner";
 import moment from "moment";
 
 export default function Layout() {
-  const { t, i18n } = useTranslation("common");
-
   const {
     control,
     register,
     handleSubmit,
-    setError,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -57,15 +54,8 @@ export default function Layout() {
     },
   });
 
-  useEffect(() => {
-    i18n.on("languageChanged", () => {
-      setError("shipFrom", { message: t("THIS_FIELD_CANNOT_BE_EMPTY") });
-      setError("unloadPoint", { message: t("THIS_FIELD_CANNOT_BE_EMPTY") });
-      setError("lastConsignee", { message: t("THIS_FIELD_CANNOT_BE_EMPTY") });
-    });
-  }, [i18n, setError, t]);
-
   const [isDarkMode, toggleDarkMode] = useTheme();
+  const { t, i18n } = useTranslation("common");
 
   const { fields, append, remove } = useFieldArray({ name: "xbrList", control });
 
@@ -244,7 +234,7 @@ export default function Layout() {
               <Menu>
                 {({ open }) => (
                   <>
-                    <Menu.Button className='inline-flex items-center px-2 py-2 mr-2 text-sm rounded select-none hover:bg-volvo-gray-hover dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900'>
+                    <Menu.Button className='inline-flex items-center px-2 py-2 mr-2 text-sm truncate rounded select-none hover:bg-volvo-gray-hover dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900'>
                       <UserIcon className='w-5 h-5' />
                       <span className='px-1'>Hakan Genc</span>
                     </Menu.Button>
