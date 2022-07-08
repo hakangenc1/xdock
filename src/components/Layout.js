@@ -31,10 +31,13 @@ import Spinner from "./Spinner";
 import moment from "moment";
 
 export default function Layout() {
+  const { t, i18n } = useTranslation("common");
+
   const {
     control,
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -54,8 +57,15 @@ export default function Layout() {
     },
   });
 
+  useEffect(() => {
+    i18n.on("languageChanged", () => {
+      setError("shipFrom", { message: t("THIS_FIELD_CANNOT_BE_EMPTY") });
+      setError("unloadPoint", { message: t("THIS_FIELD_CANNOT_BE_EMPTY") });
+      setError("lastConsignee", { message: t("THIS_FIELD_CANNOT_BE_EMPTY") });
+    });
+  }, [i18n, setError, t]);
+
   const [isDarkMode, toggleDarkMode] = useTheme();
-  const { t, i18n } = useTranslation("common");
 
   const { fields, append, remove } = useFieldArray({ name: "xbrList", control });
 
@@ -413,7 +423,7 @@ export default function Layout() {
                       }`}
                       placeholder={t("SHIP_FROM")}
                     />
-                    <div className='absolute w-full text-sm text-red-500 truncate top-11'>{errors.shipFrom && errors.shipFrom.message}</div>
+                    <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.shipFrom && errors.shipFrom.message}</div>
                   </div>
                 </div>
 
@@ -434,7 +444,7 @@ export default function Layout() {
                       }`}
                       placeholder={t("UNLOAD_POINT")}
                     />
-                    <div className='absolute w-full text-sm text-red-500 truncate top-11'>{errors.unloadPoint && errors.unloadPoint.message}</div>
+                    <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.unloadPoint && errors.unloadPoint.message}</div>
                   </div>
                 </div>
 
@@ -455,7 +465,7 @@ export default function Layout() {
                       }`}
                       placeholder={t("LAST_CONSIGNEE")}
                     />
-                    <div className='absolute w-full text-sm text-red-500 truncate top-11'>{errors.lastConsignee && errors.lastConsignee.message}</div>
+                    <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.lastConsignee && errors.lastConsignee.message}</div>
                   </div>
                 </div>
 
