@@ -44,5 +44,6 @@
   "LOADING": "Loading...",
   "DELETING": "Deleting...",
   "SAVED_AS_TEMPLATE": "Saving as template...",
-  "THIS_FIELD_CANNOT_BE_EMPTY": "This field cannot be empty!"
+  "THIS_FIELD_CANNOT_BE_EMPTY": "This field cannot be empty!",
+  "SAVED_AND_SENT_TO_ATLAS": "Sending to Atlas..."
 }

@@ -18,7 +18,7 @@ import {
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import axios from "axios";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import dayjs from "dayjs";
 
 import { useTranslation } from "react-i18next";
 import "../translations/i18next";
@@ -31,54 +31,50 @@ import Spinner from "./Spinner";
 import moment from "moment";
 
 export default function Layout() {
-  const {
-    control,
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      shipFrom: "",
-      unloadPoint: "",
-      lastConsignee: "",
-      serviceProvider: "",
-      pickupReference: "",
-      messageToCarrier: "",
-      xbrList: [
-        {
-          trailerCount: "",
-          slotStartTime: "",
-          slotEndTime: "",
-        },
-      ],
-    },
-  });
-
   const [isDarkMode, toggleDarkMode] = useTheme();
   const { t, i18n } = useTranslation("common");
 
-  const { fields, append, remove } = useFieldArray({ name: "xbrList", control });
-
-  const [list, setList] = useState([]);
+  const state = {
+    shipFrom: "",
+    unloadPoint: "",
+    lastConsignee: "",
+    serviceProvider: "",
+    pickupReference: "",
+    messageToCarrier: "",
+    trailerList: [
+      {
+        trailerCount: "",
+        slotStartTime: "",
+        slotEndTime: "",
+      },
+    ],
+  };
+  const [xbrDetail, setXbrDetail] = useState(state);
+  const [draftList, setDraftList] = useState([]);
+  const [confirmedList, setConfirmedList] = useState([]);
+  const [templateList, setTemplateList] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
-  const [isDeleted, setIsDeleted] = useState(false);
-  const [isSavedAsTemplate, setIsSavedAsTemplate] = useState(false);
+  const [savedMessage, setSavedMessage] = useState("");
 
   const handleXBRLoad = async () => {
     setIsLoading(true);
-    setTimeout(async () => {
-      try {
-        const response = await axios.get("https://jsonplaceholder.typicode.com/posts");
-        setList(response.data);
-        setIsLoading(false);
-      } catch (error) {
-        console.log(error.message);
-        setIsLoading(false);
-      }
-    }, 1000);
+    try {
+      const response = await axios.get("http://localhost:8000/xbrList");
+      const draftList = response.data.filter((xbr) => xbr.status === "DRAFT");
+      const confirmedList = response.data.filter((xbr) => xbr.status === "CONFIRMED");
+      const templateList = response.data.filter((xbr) => xbr.status === "TEMPLATE");
+      setDraftList(draftList);
+      setConfirmedList(confirmedList);
+      setTemplateList(templateList);
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error.message);
+      setIsLoading(false);
+    }
   };
   useEffect(() => {
     handleXBRLoad();
@@ -97,53 +93,106 @@ export default function Layout() {
   };
 
   const handleAddRow = () => {
-    append({ trailerCount: "", slotStartTime: "", slotEndTime: "" });
+    const newRow = { ...xbrDetail, trailerList: [...xbrDetail.trailerList, { trailerCount: "", slotStartTime: "", slotEndTime: "" }] };
+    setXbrDetail(newRow);
   };
 
   const handleDeleteRow = (id) => {
-    remove(id);
+    const deletedRow = xbrDetail.trailerList.filter((row, index) => index !== id);
+    const newData = { ...xbrDetail, trailerList: deletedRow };
+    setXbrDetail(newData);
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = (type) => {
+    setSavedMessage(type);
     handleXBRLoad();
   };
 
-  const handleDeleteXBR = () => {
-    setIsDeleted(true);
+  const handleDeleteXBR = (type) => {
+    setIsLoading(true);
+    setSavedMessage(type);
     setIsOpen(false);
     setTimeout(() => {
-      setIsDeleted(false);
+      setIsLoading(false);
     }, 1000);
   };
 
-  const handleSaveAsTemplate = () => {
-    setIsSavedAsTemplate(true);
+  const handleSaveAsTemplate = (type) => {
+    setIsLoading(true);
+    setSavedMessage(type);
     setIsTemplateOpen(false);
     setTimeout(() => {
-      setIsSavedAsTemplate(false);
+      setIsLoading(false);
     }, 1000);
   };
 
-  const handleSaveAndSendToAtlas = (data) => {
-    console.log("data", data);
+  const handleSaveAndSendToAtlas = async (type) => {
+    const newTrailerList = xbrDetail.trailerList.map((trailer) => {
+      return {
+        trailerCount: trailer.trailerCount,
+        slotStartTime: dayjs(trailer.slotStartTime).format("YYYY-MM-DD HH:mm"),
+        slotEndTime: dayjs(trailer.slotEndTime).format("YYYY-MM-DD HH:mm"),
+      };
+    });
+    const newData = type === "SAVED_AND_SENT_TO_ATLAS" && {
+      ...xbrDetail,
+      id: Math.random().toString().slice(2, 11),
+      status: "CONFIRMED",
+      transmissionNumber: Math.random().toString().slice(2, 11),
+      trailerList: newTrailerList,
+    };
+
+    setIsLoading(true);
+    try {
+      setSavedMessage(type);
+      await axios.post("http://localhost:8000/xbrList", newData);
+      setIsLoading(false);
+      setXbrDetail(state);
+      handleXBRLoad();
+    } catch (err) {
+      console.log(err.message);
+      setIsLoading(false);
+    }
+  };
+
+  const handleGetDetails = async (id) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:8000/xbrList/${id}`);
+      setXbrDetail(response.data);
+      console.log(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error.message);
+      setIsLoading(false);
+    }
+  };
+
+  const handleChangeTrailer = (e, index) => {
+    const { name, value } = e.target;
+    const newData = [...xbrDetail.trailerList];
+    newData[index][name] = value;
+    const newXbr = { ...xbrDetail, trailerList: newData };
+    setXbrDetail(newXbr);
+  };
+
+  const handleChangeInput = (e) => {
+    const { name, value } = e.target;
+    setXbrDetail({ ...xbrDetail, [name]: value });
+  };
+
+  const handleChangeDate = (date, index, name) => {
+    const newData = [...xbrDetail.trailerList];
+    newData[index][name] = date;
+    const newXbr = { ...xbrDetail, trailerList: newData };
+    setXbrDetail(newXbr);
   };
 
   return (
     <>
       {isLoading && (
         <div className='absolute z-50 w-full'>
-          <Spinner text={t("LOADING")} />
-        </div>
-      )}
-      {isDeleted && (
-        <div className='absolute z-50 w-full'>
-          <Spinner text={t("DELETING")} />
-        </div>
-      )}
-
-      {isSavedAsTemplate && (
-        <div className='absolute z-50 w-full'>
-          <Spinner text={t("SAVED_AS_TEMPLATE")} />
+          <Spinner text={t(savedMessage)} />
         </div>
       )}
 
@@ -174,9 +223,9 @@ export default function Layout() {
 
           <div className='flex items-center gap-1'>
             {isDarkMode === false ? (
-              <MoonIcon onClick={() => toggleDarkMode()} className='p-2 rounded cursor-pointer w-9 h-9 hover:bg-volvo-gray-hover dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900' />
+              <MoonIcon onClick={toggleDarkMode} className='p-2 rounded cursor-pointer w-9 h-9 hover:bg-volvo-gray-hover dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900' />
             ) : (
-              <SunIcon onClick={() => toggleDarkMode()} className='p-2 rounded cursor-pointer w-9 h-9 hover:bg-volvo-gray-hover dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900' />
+              <SunIcon onClick={toggleDarkMode} className='p-2 rounded cursor-pointer w-9 h-9 hover:bg-volvo-gray-hover dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900' />
             )}
 
             <div className='relative z-10'>
@@ -236,7 +285,7 @@ export default function Layout() {
                   <>
                     <Menu.Button
                       as='div'
-                      className='inline-flex items-center px-2 py-2 mr-2 text-sm rounded cursor-pointer select-none  hover:bg-volvo-gray-hover dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900'
+                      className='inline-flex items-center px-2 py-2 mr-2 text-sm rounded cursor-pointer select-none hover:bg-volvo-gray-hover dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900'
                     >
                       <UserIcon className='w-5 h-5' />
                       <span className='w-12 px-1 truncate md:w-full'>Hakan Genc</span>
@@ -304,20 +353,27 @@ export default function Layout() {
                       <ChevronUpIcon className={`${open ? "rotate-180 transform" : "rotate-90 transform"} h-5 w-5 text-black ml-2 dark:text-gray-300`} />
                       <span className='ml-2'>{t("DRAFT")}</span>
                     </Disclosure.Button>
-                    {list.length > 0 &&
-                      list.map((e) => {
+                    {draftList.length > 0 &&
+                      draftList.map((draft) => {
                         return (
                           <Disclosure.Panel
-                            key={e.id}
+                            key={draft.id}
+                            onClick={() => handleGetDetails(draft.id)}
                             className='px-4 pt-4 pb-2 mb-1 text-gray-500 cursor-pointer border-l-6 border-l-volvo-warning-border hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-600'
                           >
-                            <div className='w-full py-1 overflow-hidden text-sm truncate hover:text-clip dark:text-gray-300'>{t("ORDER_ID")}: 1231231231</div>
-                            <div className='flex justify-between py-1'>
-                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>2314 DFDS</div>
-                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>1 TEST</div>
+                            <div className='w-full py-1 overflow-hidden text-sm truncate hover:text-clip dark:text-gray-300'>
+                              {t("ORDER_ID")}: {draft.id}
                             </div>
-                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>{t("CUSTOMER_UNIT")}: 17TBECU 1TEST - test gate</div>
-                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>{t("TRANSMISSION_NUMBER")}: 2324543232</div>
+                            <div className='flex justify-between py-1'>
+                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>{draft.shipFrom}</div>
+                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>{draft.unloadPoint}</div>
+                            </div>
+                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>
+                              {t("CUSTOMER_UNIT")}: {draft.lastConsignee}
+                            </div>
+                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>
+                              {t("TRANSMISSION_NUMBER")}: {draft.transmissionNumber}
+                            </div>
                             <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>{t("CREATED_AT")}: 4 weeks ago</div>
                           </Disclosure.Panel>
                         );
@@ -332,20 +388,27 @@ export default function Layout() {
                       <ChevronUpIcon className={`${open ? "rotate-180 transform" : "rotate-90 transform"} h-5 w-5 text-black ml-2 dark:text-gray-300`} />
                       <span className='ml-2'>{t("CONFIRMED")}</span>
                     </Disclosure.Button>
-                    {list.length > 0 &&
-                      list.map((e) => {
+                    {confirmedList.length > 0 &&
+                      confirmedList.map((confirmed) => {
                         return (
                           <Disclosure.Panel
-                            key={e.id}
+                            key={confirmed.id}
+                            onClick={() => handleGetDetails(confirmed.id)}
                             className='px-4 pt-4 pb-2 mb-1 text-gray-500 cursor-pointer border-l-6 border-l-volvo-success-border hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-600'
                           >
-                            <div className='w-full py-1 overflow-hidden text-sm truncate hover:text-clip dark:text-gray-300'>{t("REFERENCE_ID")}: 1231231231</div>
-                            <div className='flex justify-between py-1'>
-                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>2314 DFDS</div>
-                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>1 TEST</div>
+                            <div className='w-full py-1 overflow-hidden text-sm truncate hover:text-clip dark:text-gray-300'>
+                              {t("REFERENCE_ID")}: {confirmed.id}
                             </div>
-                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>{t("CUSTOMER_UNIT")}: 17TBECU 1TEST - test gate</div>
-                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>{t("TRANSMISSION_NUMBER")}: 2324543232</div>
+                            <div className='flex justify-between py-1'>
+                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>{confirmed.shipFrom}</div>
+                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>{confirmed.unloadPoint}</div>
+                            </div>
+                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>
+                              {t("CUSTOMER_UNIT")}: {confirmed.lastConsignee}
+                            </div>
+                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>
+                              {t("TRANSMISSION_NUMBER")}: {confirmed.transmissionNumber}
+                            </div>
                             <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>{t("CREATED_AT")}: 4 weeks ago</div>
                           </Disclosure.Panel>
                         );
@@ -360,20 +423,27 @@ export default function Layout() {
                       <ChevronUpIcon className={`${open ? "rotate-180 transform" : "rotate-90 transform"} h-5 w-5 text-black ml-2 dark:text-gray-300`} />
                       <span className='ml-2'>{t("TEMPLATE")}</span>
                     </Disclosure.Button>
-                    {list.length > 0 &&
-                      list.map((e) => {
+                    {templateList.length > 0 &&
+                      templateList.map((template) => {
                         return (
                           <Disclosure.Panel
-                            key={e.id}
+                            onClick={() => handleGetDetails(template.id)}
+                            key={template.id}
                             className='px-4 pt-4 pb-2 mb-1 text-gray-500 cursor-pointer border-l-6 border-l-volvo-information-border hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-600'
                           >
-                            <div className='w-full py-1 overflow-hidden text-sm truncate hover:text-clip dark:text-gray-300'>{t("TEMPLATE_REF_ID")}: 1231231231</div>
-                            <div className='flex justify-between py-1'>
-                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>2314 DFDS</div>
-                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>1 TEST</div>
+                            <div className='w-full py-1 overflow-hidden text-sm truncate hover:text-clip dark:text-gray-300'>
+                              {t("TEMPLATE_REF_ID")}: {template.id}
                             </div>
-                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>{t("CUSTOMER_UNIT")}: 17TBECU 1TEST - test gate</div>
-                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>{t("TRANSMISSION_NUMBER")}: 2324543232</div>
+                            <div className='flex justify-between py-1'>
+                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>{template.shipFrom}</div>
+                              <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>{template.unloadPoint}</div>
+                            </div>
+                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>
+                              {t("CUSTOMER_UNIT")}: {template.lastConsignee}
+                            </div>
+                            <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>
+                              {t("TRANSMISSION_NUMBER")}: {template.transmissionNumber}
+                            </div>
                             <div className='py-1 text-sm truncate hover:text-clip dark:text-gray-300'>{t("CREATED_AT")}: 4 weeks ago</div>
                           </Disclosure.Panel>
                         );
@@ -393,239 +463,237 @@ export default function Layout() {
                 <TrashIcon />
               </Button>
 
-              <Modal isOpen={isOpen} close={toggleModal} title={t("DELETE_XBR")} actions={{ cancelText: t("CANCEL"), cancel: toggleModal, confirmText: t("CONFIRM"), confirm: handleDeleteXBR }}>
+              <Modal
+                isOpen={isOpen}
+                close={toggleModal}
+                title={t("DELETE_XBR")}
+                actions={{ cancelText: t("CANCEL"), cancel: toggleModal, confirmText: t("CONFIRM"), confirm: () => handleDeleteXBR("DELETING") }}
+              >
                 {t("ARE_YOU_SURE_YOU_WANT_TO_DELETE_IT")}
               </Modal>
             </div>
-            <form id='xbr' autoComplete='off'>
-              <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
-                <div className='w-full mb-4'>
-                  <div className='mb-2 text-sm'>
-                    <label htmlFor='shipFrom' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
-                      {t("SHIP_FROM")}
-                    </label>
-                  </div>
-                  <div className='relative'>
-                    <input
-                      id='shipFrom'
-                      type='text'
-                      {...register("shipFrom", { required: t("THIS_FIELD_CANNOT_BE_EMPTY") })}
-                      name='shipFrom'
-                      className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.shipFrom ? "border-red-500" : "dark:border-gray-700"} ${
-                        errors.shipFrom ? "border-red-500" : "hover:border-volvo-blue"
-                      }`}
-                      placeholder={t("SHIP_FROM")}
-                    />
-                    <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.shipFrom && errors.shipFrom.message}</div>
-                  </div>
+            <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
+              <div className='w-full mb-4'>
+                <div className='mb-2 text-sm'>
+                  <label htmlFor='shipFrom' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
+                    {t("SHIP_FROM")}
+                  </label>
                 </div>
-
-                <div className='w-full mb-4'>
-                  <div className='mb-2 text-sm'>
-                    <label htmlFor='unloadPoint' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
-                      {t("UNLOAD_POINT")}
-                    </label>
-                  </div>
-                  <div className='relative'>
-                    <input
-                      id='unloadPoint'
-                      type='text'
-                      {...register("unloadPoint", { required: t("THIS_FIELD_CANNOT_BE_EMPTY") })}
-                      name='unloadPoint'
-                      className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.unloadPoint ? "border-red-500" : "dark:border-gray-700"} ${
-                        errors.unloadPoint ? "border-red-500" : "hover:border-volvo-blue"
-                      }`}
-                      placeholder={t("UNLOAD_POINT")}
-                    />
-                    <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.unloadPoint && errors.unloadPoint.message}</div>
-                  </div>
-                </div>
-
-                <div className='w-full mb-4'>
-                  <div className='mb-2 text-sm'>
-                    <label htmlFor='lastConsignee' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
-                      {t("LAST_CONSIGNEE")}
-                    </label>
-                  </div>
-                  <div className='relative'>
-                    <input
-                      type='text'
-                      id='lastConsignee'
-                      {...register("lastConsignee", { required: t("THIS_FIELD_CANNOT_BE_EMPTY") })}
-                      name='lastConsignee'
-                      className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.lastConsignee ? "border-red-500" : "dark:border-gray-700"} ${
-                        errors.lastConsignee ? "border-red-500" : "hover:border-volvo-blue"
-                      }`}
-                      placeholder={t("LAST_CONSIGNEE")}
-                    />
-                    <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.lastConsignee && errors.lastConsignee.message}</div>
-                  </div>
-                </div>
-
-                <div className='w-full mb-4'>
-                  <div className='mb-2 text-sm'>
-                    <label htmlFor='serviceProvider' className='truncate before:text-red-500 dark:text-gray-300'>
-                      {t("SERVICE_PROVIDER")}
-                    </label>
-                  </div>
+                <div className='relative'>
                   <input
+                    id='shipFrom'
                     type='text'
-                    id='serviceProvider'
-                    {...register("serviceProvider")}
-                    name='serviceProvider'
-                    className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                    placeholder={t("SERVICE_PROVIDER")}
+                    name='shipFrom'
+                    className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
+                    // className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.shipFrom ? "border-red-500" : "dark:border-gray-700"} ${
+                    //   errors.shipFrom ? "border-red-500" : "hover:border-volvo-blue"
+                    // }`}
+                    onChange={(e) => handleChangeInput(e)}
+                    value={xbrDetail.shipFrom}
+                    placeholder={t("SHIP_FROM")}
                   />
+                  {/* <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.shipFrom && errors.shipFrom.message}</div> */}
                 </div>
               </div>
 
-              <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
-                <div className='w-full mb-4'>
-                  <div className='mb-2 text-sm'>
-                    <label htmlFor='pickupReference' className='truncate before:text-red-500 dark:text-gray-300'>
-                      {t("PICKUP_REFERENCE")}
-                    </label>
-                  </div>
-                  <input
-                    type='text'
-                    id='pickupReference'
-                    {...register("pickupReference")}
-                    name='pickupReference'
-                    className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                    placeholder={t("PICKUP_REFERENCE")}
-                  />
+              <div className='w-full mb-4'>
+                <div className='mb-2 text-sm'>
+                  <label htmlFor='unloadPoint' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
+                    {t("UNLOAD_POINT")}
+                  </label>
                 </div>
-
-                <div className='w-full mb-4'>
-                  <div className='mb-2 text-sm'>
-                    <label htmlFor='messageToCarrier' className='truncate before:text-red-500 dark:text-gray-300'>
-                      {t("MESSAGE_TO_CARRIER")}
-                    </label>
-                  </div>
+                <div className='relative'>
                   <input
+                    id='unloadPoint'
                     type='text'
-                    id='messageToCarrier'
-                    {...register("messageToCarrier")}
-                    name='messageToCarrier'
-                    className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
-                    placeholder={t("MESSAGE_TO_CARRIER")}
+                    name='unloadPoint'
+                    onChange={(e) => handleChangeInput(e)}
+                    value={xbrDetail.unloadPoint}
+                    className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
+                    // className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.unloadPoint ? "border-red-500" : "dark:border-gray-700"} ${
+                    //   errors.unloadPoint ? "border-red-500" : "hover:border-volvo-blue"
+                    // }`}
+                    placeholder={t("UNLOAD_POINT")}
                   />
+                  {/* <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.unloadPoint && errors.unloadPoint.message}</div> */}
                 </div>
               </div>
 
-              <div className='px-8'>
-                <button
-                  type='button'
-                  onClick={handleAddRow}
-                  className='inline-flex items-center select-none px-3 py-2 hover:bg-[#EEE] text-sm border rounded active:relative active:top-0.5 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700'
-                >
-                  <PlusIcon className='w-5 h-5 mr-1' />
-                  <span className='whitespace-nowrap'>{t("ADD_ROW")}</span>
-                </button>
+              <div className='w-full mb-4'>
+                <div className='mb-2 text-sm'>
+                  <label htmlFor='lastConsignee' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
+                    {t("LAST_CONSIGNEE")}
+                  </label>
+                </div>
+                <div className='relative'>
+                  <input
+                    type='text'
+                    id='lastConsignee'
+                    onChange={(e) => handleChangeInput(e)}
+                    value={xbrDetail.lastConsignee}
+                    name='lastConsignee'
+                    className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
+                    // className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.lastConsignee ? "border-red-500" : "dark:border-gray-700"} ${
+                    //   errors.lastConsignee ? "border-red-500" : "hover:border-volvo-blue"
+                    // }`}
+                    placeholder={t("LAST_CONSIGNEE")}
+                  />
+                  {/* <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.lastConsignee && errors.lastConsignee.message}</div> */}
+                </div>
+              </div>
 
-                <table className='w-full p-2 mt-2 mb-10 border table-fixed select-none dark:border-gray-700'>
-                  <thead>
+              <div className='w-full mb-4'>
+                <div className='mb-2 text-sm'>
+                  <label htmlFor='serviceProvider' className='truncate before:text-red-500 dark:text-gray-300'>
+                    {t("SERVICE_PROVIDER")}
+                  </label>
+                </div>
+                <input
+                  type='text'
+                  id='serviceProvider'
+                  name='serviceProvider'
+                  onChange={(e) => handleChangeInput(e)}
+                  value={xbrDetail.serviceProvider}
+                  className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
+                  placeholder={t("SERVICE_PROVIDER")}
+                />
+              </div>
+            </div>
+
+            <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
+              <div className='w-full mb-4'>
+                <div className='mb-2 text-sm'>
+                  <label htmlFor='pickupReference' className='truncate before:text-red-500 dark:text-gray-300'>
+                    {t("PICKUP_REFERENCE")}
+                  </label>
+                </div>
+                <input
+                  type='text'
+                  id='pickupReference'
+                  onChange={(e) => handleChangeInput(e)}
+                  value={xbrDetail.pickupReference}
+                  name='pickupReference'
+                  className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
+                  placeholder={t("PICKUP_REFERENCE")}
+                />
+              </div>
+
+              <div className='w-full mb-4'>
+                <div className='mb-2 text-sm'>
+                  <label htmlFor='messageToCarrier' className='truncate before:text-red-500 dark:text-gray-300'>
+                    {t("MESSAGE_TO_CARRIER")}
+                  </label>
+                </div>
+                <input
+                  type='text'
+                  id='messageToCarrier'
+                  onChange={(e) => handleChangeInput(e)}
+                  value={xbrDetail.messageToCarrier}
+                  name='messageToCarrier'
+                  className='w-full px-3 py-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
+                  placeholder={t("MESSAGE_TO_CARRIER")}
+                />
+              </div>
+            </div>
+
+            <div className='px-8'>
+              <button
+                type='button'
+                onClick={handleAddRow}
+                className='inline-flex items-center select-none px-3 py-2 hover:bg-[#EEE] text-sm border rounded active:relative active:top-0.5 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700'
+              >
+                <PlusIcon className='w-5 h-5 mr-1' />
+                <span className='whitespace-nowrap'>{t("ADD_ROW")}</span>
+              </button>
+
+              <table className='w-full p-2 mt-2 mb-10 border table-fixed select-none dark:border-gray-700'>
+                <thead>
+                  <tr>
+                    <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300 after:content-[""] before:content-["*"] before:text-red-500'>{t("TRAILER_COUNT")}</td>
+                    <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300 after:content-[""] before:content-["*"] before:text-red-500'>
+                      {t("SLOT_START_TIME")} (Europe/Stockholm)
+                    </td>
+                    <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300 after:content-[""] before:content-["*"] before:text-red-500'>
+                      {t("SLOT_END_TIME")} (Europe/Stockholm)
+                    </td>
+                    <td className='w-12 p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300'></td>
+                  </tr>
+                </thead>
+                <tbody>
+                  {xbrDetail.trailerList.length === 0 ? (
                     <tr>
-                      <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300 after:content-[""] before:content-["*"] before:text-red-500'>{t("TRAILER_COUNT")}</td>
-                      <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300 after:content-[""] before:content-["*"] before:text-red-500'>
-                        {t("SLOT_START_TIME")} (Europe/Stockholm)
+                      <td colSpan={3}>
+                        <div className='w-full p-3 text-sm italic text-center'>{t("NO_DATA")}</div>
                       </td>
-                      <td className='p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300 after:content-[""] before:content-["*"] before:text-red-500'>
-                        {t("SLOT_END_TIME")} (Europe/Stockholm)
-                      </td>
-                      <td className='w-12 p-2 text-sm truncate border dark:border-gray-700 dark:text-gray-300'></td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {fields.length === 0 ? (
-                      <tr>
-                        <td colSpan={3}>
-                          <div className='w-full p-3 text-sm italic text-center'>{t("NO_DATA")}</div>
+                  ) : (
+                    xbrDetail.trailerList.map((xbr, index) => (
+                      <tr key={index}>
+                        <td className='p-1'>
+                          <input
+                            // className={`w-full p-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${
+                            //   errors.trailerList?.[index]?.trailerCount ? "border-red-500" : "dark:border-gray-700"
+                            // } ${errors.trailerList?.[index]?.trailerCount ? "border-red-500" : "hover:border-volvo-blue"}`}
+
+                            className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
+                            name='trailerCount'
+                            type='text'
+                            value={xbr.trailerCount}
+                            onChange={(e) => handleChangeTrailer(e, index)}
+                            placeholder={t("TRAILER_COUNT")}
+                          />
                         </td>
+                        <td className='p-1'>
+                          <DatePicker
+                            showTimeSelect
+                            timeFormat='HH:mm'
+                            timeIntervals={15}
+                            timeCaption='Time'
+                            dateFormat='yyyy-MM-dd HH:mm'
+                            name='slotStartTime'
+                            selected={Date.parse(xbr.slotStartTime)}
+                            value={Date.parse(xbr.slotStartTime)}
+                            onChange={(date) => handleChangeDate(date, index, "slotStartTime")}
+                            placeholderText={t("SLOT_START_TIME")}
+                            calendarStartDay={1}
+                            className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
+                            // className={`w-full p-2 text-sm border outline-none dark:text-gray-300 dark:bg-gray-900 ${
+                            //   errors.trailerList?.[index]?.slotStartTime ? "border-red-500" : "dark:border-gray-700"
+                            // } ${errors.trailerList?.[index]?.slotStartTime ? "border-red-500" : "hover:border-volvo-blue"}`}
+                            minDate={moment().toDate()}
+                          />
+                        </td>
+                        <td className='p-1'>
+                          <DatePicker
+                            showTimeSelect
+                            timeFormat='HH:mm'
+                            timeIntervals={15}
+                            timeCaption='Time'
+                            placeholderText={t("SLOT_END_TIME")}
+                            name='slotEndTime'
+                            selected={Date.parse(xbr.slotEndTime)}
+                            value={Date.parse(xbr.slotEndTime)}
+                            onChange={(date) => handleChangeDate(date, index, "slotEndTime")}
+                            calendarStartDay={1}
+                            dateFormat='yyyy-MM-dd HH:mm'
+                            className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
+                            // className={`w-full p-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${
+                            //   errors.trailerList?.[index]?.slotEndTime ? "border-red-500" : "dark:border-gray-700"
+                            // } ${errors.trailerList?.[index]?.slotEndTime ? "border-red-500" : "hover:border-volvo-blue"}`}
+                            minDate={moment().toDate()}
+                          />
+                        </td>
+                        {xbrDetail.trailerList.length > 1 && (
+                          <td className='w-12 p-1'>
+                            <TrashIcon onClick={() => handleDeleteRow(index)} className='w-5 h-5 mx-auto text-gray-500 cursor-pointer hover:text-red-500 dark:hover:text-red-500 dark:text-gray-300 ' />
+                          </td>
+                        )}
                       </tr>
-                    ) : (
-                      fields.map((xbr, index) => (
-                        <tr key={xbr.id}>
-                          <td className='p-1'>
-                            <input
-                              className={`w-full p-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${
-                                errors.xbrList?.[index]?.trailerCount ? "border-red-500" : "dark:border-gray-700"
-                              } ${errors.xbrList?.[index]?.trailerCount ? "border-red-500" : "hover:border-volvo-blue"}`}
-                              name={`xbrList[${index}]trailerCount`}
-                              type='text'
-                              {...register(`xbrList.${index}.trailerCount`, { required: t("THIS_FIELD_CANNOT_BE_EMPTY") })}
-                              placeholder={t("TRAILER_COUNT")}
-                            />
-                          </td>
-                          <td className='p-1'>
-                            <Controller
-                              control={control}
-                              name={`xbrList.${index}.slotStartTime`}
-                              rules={{ required: t("THIS_FIELD_CANNOT_BE_EMPTY") }}
-                              render={({ field: { onChange, value, ref } }) => (
-                                <DatePicker
-                                  showTimeSelect
-                                  timeFormat='HH:mm'
-                                  timeIntervals={15}
-                                  timeCaption='Time'
-                                  dateFormat='yyyy-MM-dd HH:mm'
-                                  selected={value}
-                                  name={`xbrList.${index}.slotStartTime`}
-                                  placeholderText={t("SLOT_START_TIME")}
-                                  ref={ref}
-                                  calendarStartDay={1}
-                                  value={value}
-                                  className={`w-full p-2 text-sm border outline-none dark:text-gray-300 dark:bg-gray-900 ${
-                                    errors.xbrList?.[index]?.slotStartTime ? "border-red-500" : "dark:border-gray-700"
-                                  } ${errors.xbrList?.[index]?.slotStartTime ? "border-red-500" : "hover:border-volvo-blue"}`}
-                                  onChange={onChange}
-                                  minDate={moment().toDate()}
-                                />
-                              )}
-                            />
-                          </td>
-                          <td className='p-1'>
-                            <Controller
-                              control={control}
-                              name={`xbrList.${index}.slotEndTime`}
-                              rules={{ required: t("THIS_FIELD_CANNOT_BE_EMPTY") }}
-                              render={({ field: { onChange, value, ref } }) => (
-                                <DatePicker
-                                  showTimeSelect
-                                  name={`xbrList.${index}.slotEndTime`}
-                                  timeFormat='HH:mm'
-                                  timeIntervals={15}
-                                  timeCaption='Time'
-                                  placeholderText={t("SLOT_END_TIME")}
-                                  selected={value}
-                                  ref={ref}
-                                  calendarStartDay={1}
-                                  dateFormat='yyyy-MM-dd HH:mm'
-                                  value={value}
-                                  className={`w-full p-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${
-                                    errors.xbrList?.[index]?.slotEndTime ? "border-red-500" : "dark:border-gray-700"
-                                  } ${errors.xbrList?.[index]?.slotEndTime ? "border-red-500" : "hover:border-volvo-blue"}`}
-                                  onChange={onChange}
-                                  minDate={moment().toDate()}
-                                />
-                              )}
-                            />
-                          </td>
-                          {fields.length > 1 && (
-                            <td className='w-12 p-1'>
-                              <TrashIcon
-                                onClick={() => handleDeleteRow(index)}
-                                className='w-5 h-5 mx-auto text-gray-500 cursor-pointer hover:text-red-500 dark:hover:text-red-500 dark:text-gray-300 '
-                              />
-                            </td>
-                          )}
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </form>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -643,7 +711,7 @@ export default function Layout() {
 
                 <button
                   type='button'
-                  onClick={handleRefresh}
+                  onClick={() => handleRefresh("")}
                   className='select-none active:relative active:top-0.5 items-center px-2 py-2 dark:border-gray-800 dark:hover:bg-gray-900 dark:bg-gray-800 text-sm rounded hover:bg-volvo-success-button-background-hover'
                 >
                   <RefreshIcon className='w-5 h-5' />
@@ -684,7 +752,7 @@ export default function Layout() {
                             {({ active }) => (
                               <button
                                 form='xbr'
-                                onClick={handleSubmit(handleSaveAndSendToAtlas)}
+                                onClick={() => handleSaveAndSendToAtlas("SAVED_AND_SENT_TO_ATLAS")}
                                 className={`${
                                   active ? "bg-gray-100 dark:bg-gray-800 text-gray-900" : "text-gray-700"
                                 } flex items-center dark:text-gray-300 gap-1 w-full px-3 py-2 text-sm leading-5 text-center cursor-pointer`}
@@ -733,7 +801,7 @@ export default function Layout() {
               isOpen={isTemplateOpen}
               close={toggleTemplateModal}
               title={t("SAVE_AS_TEMPLATE")}
-              actions={{ cancelText: t("CANCEL"), cancel: toggleTemplateModal, confirmText: t("CONFIRM"), confirm: handleSaveAsTemplate }}
+              actions={{ cancelText: t("CANCEL"), cancel: toggleTemplateModal, confirmText: t("CONFIRM"), confirm: () => handleSaveAsTemplate("SAVED_AS_TEMPLATE") }}
             >
               <input
                 className='w-full p-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
