@@ -234,9 +234,12 @@ export default function Layout() {
               <Menu>
                 {({ open }) => (
                   <>
-                    <Menu.Button className='inline-flex items-center px-2 py-2 mr-2 text-sm truncate rounded select-none hover:bg-volvo-gray-hover dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900'>
+                    <Menu.Button
+                      as='div'
+                      className='inline-flex items-center px-2 py-2 mr-2 text-sm rounded cursor-pointer select-none  hover:bg-volvo-gray-hover dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900'
+                    >
                       <UserIcon className='w-5 h-5' />
-                      <span className='px-1'>Hakan Genc</span>
+                      <span className='w-12 px-1 truncate md:w-full'>Hakan Genc</span>
                     </Menu.Button>
                     <Transition
                       show={open}
