@@ -1,23 +1,43 @@
 {
   "xbrList": [
     {
-      "id": "1232323",
-      "shipFrom": "2314 DFDS",
-      "unloadPoint": "1 TEST",
-      "lastConsignee": "17TBECU 1TEST - test gate",
-      "serviceProvider": "Service Provider",
-      "pickupReference": "Pickup Reference",
-      "messageToCarrier": "Message to carrier",
-      "transmissionNumber": "123",
-      "templateName": "",
-      "status": "DRAFT",
+      "shipFrom": "Hakan",
+      "unloadPoint": "Test",
+      "lastConsignee": "123123",
+      "serviceProvider": "123123",
+      "pickupReference": "123",
+      "messageToCarrier": "123123",
       "trailerList": [
         {
-          "trailerCount": "2",
-          "slotStartTime": "2022-07-08 16:00",
-          "slotEndTime": "2022-07-08 17:00"
+          "trailerCount": "123",
+          "slotStartTime": "2022-07-24 18:00",
+          "slotEndTime": "2022-07-21 18:00"
+        },
+        {
+          "trailerCount": "123123",
+          "slotStartTime": "2022-07-22 17:30",
+          "slotEndTime": "2022-07-28 18:00"
+        },
+        {
+          "trailerCount": "235235",
+          "slotStartTime": "2022-07-29 00:00",
+          "slotEndTime": "2022-07-22 00:00"
+        },
+        {
+          "trailerCount": "236236",
+          "slotStartTime": "2022-07-27 00:00",
+          "slotEndTime": "2022-07-30 00:00"
+        },
+        {
+          "trailerCount": "6235",
+          "slotStartTime": "2022-07-17 00:00",
+          "slotEndTime": "2022-07-21 00:00"
         }
-      ]
+      ],
+      "id": "793432035",
+      "status": "TEMPLATE",
+      "transmissionNumber": "205499682",
+      "templateName": "123123"
     },
     {
       "shipFrom": "23423",
@@ -43,27 +63,29 @@
           "slotEndTime": "2022-07-22 00:00"
         }
       ],
-      "id": "012581975",
-      "status": "CONFIRMED",
-      "transmissionNumber": "654996062"
+      "id": "916499259",
+      "status": "DRAFT",
+      "transmissionNumber": "258923480",
+      "templateName": ""
     },
     {
-      "shipFrom": "235234",
-      "unloadPoint": "234",
-      "lastConsignee": "234",
+      "shipFrom": "123",
+      "unloadPoint": "23523",
+      "lastConsignee": "4234",
       "serviceProvider": "234",
-      "pickupReference": "",
-      "messageToCarrier": "234234",
+      "pickupReference": "123",
+      "messageToCarrier": "123",
       "trailerList": [
         {
-          "trailerCount": "123123",
-          "slotStartTime": "2022-07-23 22:30",
-          "slotEndTime": "2022-07-29 22:45"
+          "trailerCount": "234",
+          "slotStartTime": "2022-07-30 19:00",
+          "slotEndTime": "2022-07-27 00:00"
         }
       ],
-      "id": "819381733",
       "status": "CONFIRMED",
-      "transmissionNumber": "428254764"
+      "templateName": "",
+      "transmissionNumber": "612147680",
+      "id": "o7ifNFj"
     }
   ],
   "xbrDetail": {}

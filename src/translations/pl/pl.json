@@ -44,5 +44,7 @@
   "LOADING": "Ładowanie...",
   "DELETING": "Usuwanie...",
   "SAVED_AS_TEMPLATE": "Zapisywanie jako szablon...",
-  "THIS_FIELD_CANNOT_BE_EMPTY": "To pole nie może być puste!"
+  "SAVED_AS_DRAFT": "Zapisywanie jako szkic...",
+  "THIS_FIELD_CANNOT_BE_EMPTY": "To pole nie może być puste!",
+  "SAVED_AND_SENT_TO_ATLAS": "Zapisane i wysłane do Atlasu"
 }

@@ -53,6 +53,7 @@ export default function Layout() {
   const [draftList, setDraftList] = useState([]);
   const [confirmedList, setConfirmedList] = useState([]);
   const [templateList, setTemplateList] = useState([]);
+  const [templateName, setTemplateName] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
@@ -63,7 +64,7 @@ export default function Layout() {
   const handleXBRLoad = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/xbrList");
+      const response = await axios.get("http://localhost:8080/xbrList");
       const draftList = response.data.filter((xbr) => xbr.status === "DRAFT");
       const confirmedList = response.data.filter((xbr) => xbr.status === "CONFIRMED");
       const templateList = response.data.filter((xbr) => xbr.status === "TEMPLATE");
@@ -108,25 +109,21 @@ export default function Layout() {
     handleXBRLoad();
   };
 
-  const handleDeleteXBR = (type) => {
+  const handleDeleteXBR = async (type, id) => {
     setIsLoading(true);
     setSavedMessage(type);
     setIsOpen(false);
-    setTimeout(() => {
+    try {
+      await axios.delete(`http://localhost:8080/xbrList/${xbrDetail.id}`);
+      handleXBRLoad();
       setIsLoading(false);
-    }, 1000);
+    } catch (err) {
+      console.log(err.message);
+      setIsLoading(false);
+    }
   };
 
-  const handleSaveAsTemplate = (type) => {
-    setIsLoading(true);
-    setSavedMessage(type);
-    setIsTemplateOpen(false);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const handleSaveAndSendToAtlas = async (type) => {
+  const handleSave = async (type) => {
     const newTrailerList = xbrDetail.trailerList.map((trailer) => {
       return {
         trailerCount: trailer.trailerCount,
@@ -134,10 +131,25 @@ export default function Layout() {
         slotEndTime: dayjs(trailer.slotEndTime).format("YYYY-MM-DD HH:mm"),
       };
     });
-    const newData = type === "SAVED_AND_SENT_TO_ATLAS" && {
+
+    let status = null;
+    let id = null;
+    if (type === "SAVED_AND_SENT_TO_ATLAS") {
+      status = "CONFIRMED";
+      id = xbrDetail.id;
+    } else if (type === "SAVED_AS_TEMPLATE") {
+      status = "TEMPLATE";
+      id = Math.random().toString().slice(2, 11);
+    } else {
+      status = "DRAFT";
+      id = xbrDetail.id;
+    }
+
+    const newData = {
       ...xbrDetail,
-      id: Math.random().toString().slice(2, 11),
-      status: "CONFIRMED",
+      id,
+      status,
+      templateName: templateName ? templateName : "",
       transmissionNumber: Math.random().toString().slice(2, 11),
       trailerList: newTrailerList,
     };
@@ -145,9 +157,15 @@ export default function Layout() {
     setIsLoading(true);
     try {
       setSavedMessage(type);
-      await axios.post("http://localhost:8000/xbrList", newData);
+      if (xbrDetail.id) {
+        await axios.put(`http://localhost:8080/xbrList/${xbrDetail.id}`, newData);
+      } else {
+        await axios.post("http://localhost:8080/xbrList", newData);
+      }
       setIsLoading(false);
       setXbrDetail(state);
+      setIsTemplateOpen(false);
+      setTemplateName("");
       handleXBRLoad();
     } catch (err) {
       console.log(err.message);
@@ -157,8 +175,9 @@ export default function Layout() {
 
   const handleGetDetails = async (id) => {
     setIsLoading(true);
+    setSavedMessage("");
     try {
-      const response = await axios.get(`http://localhost:8000/xbrList/${id}`);
+      const response = await axios.get(`http://localhost:8080/xbrList/${id}`);
       setXbrDetail(response.data);
       console.log(response.data);
       setIsLoading(false);
@@ -186,6 +205,10 @@ export default function Layout() {
     newData[index][name] = date;
     const newXbr = { ...xbrDetail, trailerList: newData };
     setXbrDetail(newXbr);
+  };
+
+  const handleCreateNew = () => {
+    setXbrDetail(state);
   };
 
   return (
@@ -434,6 +457,9 @@ export default function Layout() {
                             <div className='w-full py-1 overflow-hidden text-sm truncate hover:text-clip dark:text-gray-300'>
                               {t("TEMPLATE_REF_ID")}: {template.id}
                             </div>
+                            <div className='text-xs font-bold text-orange-300 truncate' title={template.templateName}>
+                              #{template.templateName}
+                            </div>
                             <div className='flex justify-between py-1'>
                               <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>{template.shipFrom}</div>
                               <div className='text-lg font-medium text-black truncate hover:text-clip dark:text-gray-300'>{template.unloadPoint}</div>
@@ -631,10 +657,6 @@ export default function Layout() {
                       <tr key={index}>
                         <td className='p-1'>
                           <input
-                            // className={`w-full p-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${
-                            //   errors.trailerList?.[index]?.trailerCount ? "border-red-500" : "dark:border-gray-700"
-                            // } ${errors.trailerList?.[index]?.trailerCount ? "border-red-500" : "hover:border-volvo-blue"}`}
-
                             className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
                             name='trailerCount'
                             type='text'
@@ -657,9 +679,6 @@ export default function Layout() {
                             placeholderText={t("SLOT_START_TIME")}
                             calendarStartDay={1}
                             className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
-                            // className={`w-full p-2 text-sm border outline-none dark:text-gray-300 dark:bg-gray-900 ${
-                            //   errors.trailerList?.[index]?.slotStartTime ? "border-red-500" : "dark:border-gray-700"
-                            // } ${errors.trailerList?.[index]?.slotStartTime ? "border-red-500" : "hover:border-volvo-blue"}`}
                             minDate={moment().toDate()}
                           />
                         </td>
@@ -677,9 +696,6 @@ export default function Layout() {
                             calendarStartDay={1}
                             dateFormat='yyyy-MM-dd HH:mm'
                             className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
-                            // className={`w-full p-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${
-                            //   errors.trailerList?.[index]?.slotEndTime ? "border-red-500" : "dark:border-gray-700"
-                            // } ${errors.trailerList?.[index]?.slotEndTime ? "border-red-500" : "hover:border-volvo-blue"}`}
                             minDate={moment().toDate()}
                           />
                         </td>
@@ -703,6 +719,7 @@ export default function Layout() {
               <div className='flex justify-between p-1 w-320'>
                 <button
                   type='button'
+                  onClick={handleCreateNew}
                   className='active:relative active:top-0.5 inline-flex items-center px-2 py-1 text-sm border rounded select-none dark:border-gray-800 dark:hover:bg-gray-900 dark:bg-gray-800 border-volvo-success-button-border text-volvo-success hover:bg-volvo-success-button-background-hover bg-volvo-success-button-background'
                 >
                   <PlusIcon className='w-5 h-5 mr-2' />
@@ -752,7 +769,7 @@ export default function Layout() {
                             {({ active }) => (
                               <button
                                 form='xbr'
-                                onClick={() => handleSaveAndSendToAtlas("SAVED_AND_SENT_TO_ATLAS")}
+                                onClick={() => handleSave("SAVED_AND_SENT_TO_ATLAS")}
                                 className={`${
                                   active ? "bg-gray-100 dark:bg-gray-800 text-gray-900" : "text-gray-700"
                                 } flex items-center dark:text-gray-300 gap-1 w-full px-3 py-2 text-sm leading-5 text-center cursor-pointer`}
@@ -779,6 +796,7 @@ export default function Layout() {
                           <Menu.Item>
                             {({ active }) => (
                               <button
+                                onClick={() => handleSave("SAVED_AS_DRAFT")}
                                 form='form'
                                 className={`${
                                   active ? "bg-gray-100 dark:bg-gray-800 text-gray-900" : "text-gray-700"
@@ -801,13 +819,13 @@ export default function Layout() {
               isOpen={isTemplateOpen}
               close={toggleTemplateModal}
               title={t("SAVE_AS_TEMPLATE")}
-              actions={{ cancelText: t("CANCEL"), cancel: toggleTemplateModal, confirmText: t("CONFIRM"), confirm: () => handleSaveAsTemplate("SAVED_AS_TEMPLATE") }}
+              actions={{ cancelText: t("CANCEL"), cancel: toggleTemplateModal, confirmText: t("CONFIRM"), confirm: () => handleSave("SAVED_AS_TEMPLATE") }}
             >
               <input
                 className='w-full p-2 text-sm border outline-none hover:border-volvo-blue dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
                 type='text'
                 placeholder={t("TEMPLATE_NAME")}
-                onChange={() => {}}
+                onChange={(e) => setTemplateName(e.target.value)}
               />
             </Modal>
           </div>

@@ -44,5 +44,7 @@
   "LOADING": "Läser in...",
   "DELETING": "Tar bort...",
   "SAVED_AS_TEMPLATE": "Sparar som mall...",
-  "THIS_FIELD_CANNOT_BE_EMPTY": "Detta fält får inte vara tomt!"
+  "SAVED_AS_DRAFT": "Sparar som utkast...",
+  "THIS_FIELD_CANNOT_BE_EMPTY": "Detta fält får inte vara tomt!",
+  "SAVED_AND_SENT_TO_ATLAS": "Sparad och skickad till Atlas..."
 }
