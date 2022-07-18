@@ -46,5 +46,6 @@
   "SAVED_AS_TEMPLATE": "Saving as template...",
   "SAVED_AS_DRAFT": "Saving as draft...",
   "THIS_FIELD_CANNOT_BE_EMPTY": "This field cannot be empty!",
-  "SAVED_AND_SENT_TO_ATLAS": "Sending to Atlas..."
+  "SAVED_AND_SENT_TO_ATLAS": "Sending to Atlas...",
+  "SELECT_LOCATION": "Select location"
 }

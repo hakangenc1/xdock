@@ -46,5 +46,6 @@
   "SAVED_AS_TEMPLATE": "Zapisywanie jako szablon...",
   "SAVED_AS_DRAFT": "Zapisywanie jako szkic...",
   "THIS_FIELD_CANNOT_BE_EMPTY": "To pole nie może być puste!",
-  "SAVED_AND_SENT_TO_ATLAS": "Zapisane i wysłane do Atlasu"
+  "SAVED_AND_SENT_TO_ATLAS": "Zapisane i wysłane do Atlasu",
+  "SELECT_LOCATION": "Wybierz lokalizację"
 }

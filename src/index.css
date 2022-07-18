@@ -24,7 +24,7 @@
     @apply w-3;
   }
   .scrollbar-dark::-webkit-scrollbar-thumb {
-    @apply bg-black rounded;
+    @apply bg-gray-500 rounded;
   }
 
   /* Scroll track styles (Background) */

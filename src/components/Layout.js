@@ -14,6 +14,7 @@ import {
   TranslateIcon,
   TrashIcon,
   UserIcon,
+  DuplicateIcon,
 } from "@heroicons/react/outline";
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
@@ -29,6 +30,9 @@ import Button from "./Button";
 import Modal from "./Modal";
 import Spinner from "./Spinner";
 import moment from "moment";
+import Input from "./Input";
+import Label from "./Label";
+import ModalList from "./ModalList";
 
 export default function Layout() {
   const [isDarkMode, toggleDarkMode] = useTheme();
@@ -50,6 +54,7 @@ export default function Layout() {
     ],
   };
   const [xbrDetail, setXbrDetail] = useState(state);
+  const [isModalListOpen, setIsModalListOpen] = useState(false);
   const [draftList, setDraftList] = useState([]);
   const [confirmedList, setConfirmedList] = useState([]);
   const [templateList, setTemplateList] = useState([]);
@@ -211,6 +216,10 @@ export default function Layout() {
     setXbrDetail(state);
   };
 
+  const toggleModalList = () => {
+    setIsModalListOpen(!isModalListOpen);
+  };
+
   return (
     <>
       {isLoading && (
@@ -360,10 +369,9 @@ export default function Layout() {
               <div className='p-3 text-sm text-center'>{t("ORDER_LIST")}</div>
               <div className='relative'>
                 <SearchIcon className='absolute w-4 h-4 cursor-pointer right-3 top-3' />
-                <input
+                <Input
                   type='text'
                   className='w-full px-3 py-2 pl-3 pr-10 text-sm border border-gray-400 outline-none dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300 hover:border-volvo-blue'
-                  autoComplete='off'
                   placeholder={t("SEARCH")}
                 />
               </div>
@@ -479,7 +487,7 @@ export default function Layout() {
               </Disclosure>
             </div>
           </div>
-          <div className='w-full overflow-auto bg-white dark:bg-gray-800 scrollbar dark:scrollbar-dark'>
+          <div className='w-full overflow-auto bg-white select-none dark:bg-gray-800 scrollbar dark:scrollbar-dark'>
             <div className='w-full text-sm text-center pr-2 bg-[#EFF4F9] border-b-4 border-[#427cac] flex items-center justify-between dark:bg-gray-800 dark:border-b-gray-900 dark:text-gray-300'>
               <span className=''>
                 <MenuIcon className='w-5 h-5 ml-4 cursor-pointer' onClick={() => setIsMenuOpen(!isMenuOpen)} />
@@ -500,45 +508,38 @@ export default function Layout() {
             </div>
             <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
               <div className='w-full mb-4'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='shipFrom' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
-                    {t("SHIP_FROM")}
-                  </label>
-                </div>
+                <Label required htmlFor='shipFrom'>
+                  {t("SHIP_FROM")}
+                </Label>
                 <div className='relative'>
-                  <input
+                  <Input
                     id='shipFrom'
                     type='text'
+                    button={{ action: toggleModalList, icon: <DuplicateIcon className='w-5 h-5 text-gray-500 cursor-pointer stroke-current dark:text-gray-300' /> }}
                     name='shipFrom'
                     className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
-                    // className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.shipFrom ? "border-red-500" : "dark:border-gray-700"} ${
-                    //   errors.shipFrom ? "border-red-500" : "hover:border-volvo-blue"
-                    // }`}
                     onChange={(e) => handleChangeInput(e)}
                     value={xbrDetail.shipFrom}
                     placeholder={t("SHIP_FROM")}
                   />
                   {/* <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.shipFrom && errors.shipFrom.message}</div> */}
                 </div>
+                <ModalList title={t("SELECT_LOCATION")} action={{ buttonText: t("CANCEL") }} isOpen={isModalListOpen} toggleModal={toggleModalList} />
               </div>
 
               <div className='w-full mb-4'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='unloadPoint' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
-                    {t("UNLOAD_POINT")}
-                  </label>
-                </div>
+                <Label required htmlFor='unloadPoint'>
+                  {t("UNLOAD_POINT")}
+                </Label>
                 <div className='relative'>
-                  <input
+                  <Input
+                    button={{ action: () => console.log("asd"), icon: <DuplicateIcon className='w-5 h-5 text-gray-500 cursor-pointer stroke-current dark:text-gray-300' /> }}
                     id='unloadPoint'
                     type='text'
                     name='unloadPoint'
                     onChange={(e) => handleChangeInput(e)}
                     value={xbrDetail.unloadPoint}
                     className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
-                    // className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.unloadPoint ? "border-red-500" : "dark:border-gray-700"} ${
-                    //   errors.unloadPoint ? "border-red-500" : "hover:border-volvo-blue"
-                    // }`}
                     placeholder={t("UNLOAD_POINT")}
                   />
                   {/* <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.unloadPoint && errors.unloadPoint.message}</div> */}
@@ -546,22 +547,17 @@ export default function Layout() {
               </div>
 
               <div className='w-full mb-4'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='lastConsignee' className='after:content-[""] before:content-["*"] before:text-red-500 dark:text-gray-300 truncate'>
-                    {t("LAST_CONSIGNEE")}
-                  </label>
-                </div>
+                <Label required htmlFor='lastConsignee'>
+                  {t("LAST_CONSIGNEE")}
+                </Label>
                 <div className='relative'>
-                  <input
+                  <Input
                     type='text'
                     id='lastConsignee'
                     onChange={(e) => handleChangeInput(e)}
                     value={xbrDetail.lastConsignee}
                     name='lastConsignee'
                     className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
-                    // className={`w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 ${errors.lastConsignee ? "border-red-500" : "dark:border-gray-700"} ${
-                    //   errors.lastConsignee ? "border-red-500" : "hover:border-volvo-blue"
-                    // }`}
                     placeholder={t("LAST_CONSIGNEE")}
                   />
                   {/* <div className='absolute w-full text-xs text-red-500 truncate top-11'>{errors.lastConsignee && errors.lastConsignee.message}</div> */}
@@ -569,12 +565,8 @@ export default function Layout() {
               </div>
 
               <div className='w-full mb-4'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='serviceProvider' className='truncate before:text-red-500 dark:text-gray-300'>
-                    {t("SERVICE_PROVIDER")}
-                  </label>
-                </div>
-                <input
+                <Label htmlFor='serviceProvider'>{t("SERVICE_PROVIDER")}</Label>
+                <Input
                   type='text'
                   id='serviceProvider'
                   name='serviceProvider'
@@ -588,12 +580,8 @@ export default function Layout() {
 
             <div className='grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-4'>
               <div className='w-full mb-4'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='pickupReference' className='truncate before:text-red-500 dark:text-gray-300'>
-                    {t("PICKUP_REFERENCE")}
-                  </label>
-                </div>
-                <input
+                <Label htmlFor='pickupReference'>{t("PICKUP_REFERENCE")}</Label>
+                <Input
                   type='text'
                   id='pickupReference'
                   onChange={(e) => handleChangeInput(e)}
@@ -605,12 +593,8 @@ export default function Layout() {
               </div>
 
               <div className='w-full mb-4'>
-                <div className='mb-2 text-sm'>
-                  <label htmlFor='messageToCarrier' className='truncate before:text-red-500 dark:text-gray-300'>
-                    {t("MESSAGE_TO_CARRIER")}
-                  </label>
-                </div>
-                <input
+                <Label htmlFor='messageToCarrier'>{t("MESSAGE_TO_CARRIER")}</Label>
+                <Input
                   type='text'
                   id='messageToCarrier'
                   onChange={(e) => handleChangeInput(e)}
@@ -656,20 +640,14 @@ export default function Layout() {
                     xbrDetail.trailerList.map((xbr, index) => (
                       <tr key={index}>
                         <td className='p-1'>
-                          <input
-                            className='w-full px-3 py-2 text-sm border outline-none dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 hover:border-volvo-blue'
-                            name='trailerCount'
-                            type='text'
-                            value={xbr.trailerCount}
-                            onChange={(e) => handleChangeTrailer(e, index)}
-                            placeholder={t("TRAILER_COUNT")}
-                          />
+                          <Input name='trailerCount' type='text' value={xbr.trailerCount} onChange={(e) => handleChangeTrailer(e, index)} placeholder={t("TRAILER_COUNT")} />
                         </td>
                         <td className='p-1'>
                           <DatePicker
                             showTimeSelect
                             timeFormat='HH:mm'
                             timeIntervals={15}
+                            autoComplete='off'
                             timeCaption='Time'
                             dateFormat='yyyy-MM-dd HH:mm'
                             name='slotStartTime'
@@ -686,6 +664,7 @@ export default function Layout() {
                           <DatePicker
                             showTimeSelect
                             timeFormat='HH:mm'
+                            autoComplete='off'
                             timeIntervals={15}
                             timeCaption='Time'
                             placeholderText={t("SLOT_END_TIME")}
